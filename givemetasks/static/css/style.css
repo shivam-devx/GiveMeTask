@@ -1,0 +1,82 @@
+body{
+margin:0;
+font-family: 'Segoe UI';
+background:#0f172a;
+color:white;
+}
+
+/* Sidebar */
+.sidebar{
+width:220px;
+height:100vh;
+background:#020617;
+position:fixed;
+padding:20px;
+}
+
+.sidebar h2{
+color:#22c55e;
+}
+
+.sidebar a{
+display:block;
+color:white;
+text-decoration:none;
+margin:15px 0;
+}
+
+/* Main */
+.main{
+margin-left:240px;
+padding:20px;
+}
+
+/* Cards */
+.cards{
+display:flex;
+gap:20px;
+}
+
+.card{
+background:#1e293b;
+padding:20px;
+border-radius:10px;
+flex:1;
+}
+
+/* Form */
+.task-form input,
+.task-form select{
+padding:10px;
+margin:5px;
+border-radius:8px;
+border:none;
+}
+
+.task-form button{
+padding:10px;
+background:#22c55e;
+border:none;
+border-radius:8px;
+color:white;
+}
+
+/* Task list */
+.task-list{
+list-style:none;
+padding:0;
+}
+
+.task-list li{
+background:#1e293b;
+margin:10px 0;
+padding:10px;
+border-radius:8px;
+display:flex;
+justify-content:space-between;
+}
+
+.done{
+text-decoration:line-through;
+opacity:0.6;
+}
