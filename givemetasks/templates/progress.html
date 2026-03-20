@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>Progress</h1>
+
+<canvas id="progressChart"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+const labels = {{ dates|safe }};
+const data = {{ counts|safe }};
+
+new Chart(document.getElementById('progressChart'), {
+    type: 'bar',
+    data: {
+        labels: labels,
+        datasets: [{
+            label: 'Tasks Completed',
+            data: data,
+        }]
+    }
+});
+
+</script>
+
+{% endblock %}

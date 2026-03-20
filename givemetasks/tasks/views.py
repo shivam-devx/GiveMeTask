@@ -1,8 +1,35 @@
 from django.shortcuts import render, redirect
 from .models import Task
 from django.contrib.auth.decorators import login_required
+from django.db.models import Count
+from datetime import datetime 
+from datetime import date, timedelta
 
 
+
+@login_required 
+def progress(request):
+    tasks = Task.objects.filter(user=request.user, completed=True)
+    
+    # Group by date 
+    data = (
+        tasks 
+        .extra({'date': "date(created)"})
+        .values('date')
+        .annotate(count=Count('id'))
+        .order_by('date')
+    )
+    dates = [str(item['date']) for item in data]
+    counts = [item['count'] for item in data]
+    
+    context = {
+        'dates': dates,
+        'counts': counts
+        
+    }
+    return render(request, 'progress.html', context)
+    
+    
 @login_required
 def dashboard(request):
     tasks = Task.objects.filter(user=request.user)
@@ -11,6 +38,18 @@ def dashboard(request):
     completed = tasks.filter(completed=True).count()
     pending = tasks.filter(completed=False).count()
 
+    # Streak Logic 
+    
+    streak = 0
+    today = date.today()
+    
+    for i in range(0, 30):
+        day = today - timedelta(days= i)
+        if tasks.filter(completed = True, created__date = day).exists():
+            streak += 1
+        else:
+            break
+            
     context = {
         'tasks': tasks,
         'total': total,
@@ -51,3 +90,4 @@ def delete_task(request, id):
     task = Task.objects.get(id=id, user=request.user)
     task.delete()
     return redirect('dashboard')
+
