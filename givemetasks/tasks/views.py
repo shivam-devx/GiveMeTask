@@ -4,8 +4,23 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from datetime import datetime 
 from datetime import date, timedelta
+from django.contrib.auth.models import User
+from django.contrib.auth import login
+from django.http import JsonResponse
+from django.contrib.auth import logout
 
 
+def signup(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        user = User.objects.create_user(username=username, password=password)
+        login(request, user)
+
+        return redirect('dashboard')
+
+    return render(request, 'signup.html')
 
 @login_required 
 def progress(request):
@@ -30,35 +45,48 @@ def progress(request):
     return render(request, 'progress.html', context)
     
     
-@login_required
+
+
 def dashboard(request):
-    tasks = Task.objects.filter(user=request.user)
 
-    total = tasks.count()
-    completed = tasks.filter(completed=True).count()
-    pending = tasks.filter(completed=False).count()
+    if request.user.is_authenticated:
+        tasks = Task.objects.filter(user=request.user)
 
-    # Streak Logic 
-    
-    streak = 0
-    today = date.today()
-    
-    for i in range(0, 30):
-        day = today - timedelta(days= i)
-        if tasks.filter(completed = True, created__date = day).exists():
-            streak += 1
-        else:
-            break
-            
+        total = tasks.count()
+        completed = tasks.filter(completed=True).count()
+        pending = tasks.filter(completed=False).count()
+
+        # 🔥 streak logic
+        streak = 0
+        today = date.today()
+
+        for i in range(0, 30):
+            day = today - timedelta(days=i)
+            if tasks.filter(completed=True, created__date=day).exists():
+                streak += 1
+            else:
+                break
+
+    else:
+        # 👤 guest user
+        tasks = []
+        total = 0
+        completed = 0
+        pending = 0
+        streak = 0
+
     context = {
         'tasks': tasks,
         'total': total,
         'completed': completed,
-        'pending': pending
+        'pending': pending,
+        'streak': streak
     }
 
     return render(request, 'dashboard.html', context)
 
+
+from django.http import JsonResponse
 
 @login_required
 def add_task(request):
@@ -67,14 +95,21 @@ def add_task(request):
         priority = request.POST.get('priority')
         due_date = request.POST.get('due_date')
 
-        Task.objects.create(
+        task = Task.objects.create(
             user=request.user,
             title=title,
             priority=priority,
             due_date=due_date
         )
 
-    return redirect('dashboard')
+        return JsonResponse({
+            'id': task.id,
+            'title': task.title,
+            'priority': task.priority,
+            'completed': task.completed
+        })
+
+    return JsonResponse({'error': 'Invalid request'})
 
 
 @login_required
@@ -91,3 +126,12 @@ def delete_task(request, id):
     task.delete()
     return redirect('dashboard')
 
+def logout_view(request):
+    logout(request)
+    return redirect('login')
+
+from django.shortcuts import redirect
+
+def login_redirect(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
